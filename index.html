@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>JavaScript at SoundCloud</title>
+
+		<meta name="description" content="What tools and libraries we use, how we write JavaScript and how we integrate with the SoundCloud infrastructure.">
+		<meta name="author" content="Márton Salomváry">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<link rel="stylesheet" href="css/reveal.min.css">
+		<link rel="stylesheet" href="css/sc.min.css">
+		<link rel="stylesheet" href="css/soundcloud/soundcloud.css" id="theme">
+
+		<!-- For syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+		<script>
+			document.write( '<link rel="stylesheet" href="css/print/' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+<section>
+  <img src="800x500_orange.png" alt="SoundCloud logo"/>
+</section>
+
+<section data-state="title-slide" data-markdown>
+# JavaScript<br> at SoundCloud
+### budapest.js, February 14, 2013
+
+Márton Salomváry <br>
+salomvary@soundcloud.com
+</section>
+
+<section data-markdown>
+## What is SoundCloud?
+</section>
+
+<section data-markdown>
+## The Product(s)
+
+<blockquote>
+A social sound platform for music &amp; audio creators and consumers.
+</blockquote>
+
+- 10 hours of music and audio uploaded every minute.
+- Reaches 180 million people.
+- Present on the web (+mobile), iOS, Android.
+- API, platform integrations (Twitter, FB, Flipboard, etc.)
+- Your app!
+</section>
+
+<section data-markdown>
+## The company
+
+- Launched in 2008
+- Berlin (HQ), London, Sofia, and San Francisco
+- 170 full-time staff, 30 nationalities, still growing
+
+</section>
+
+<section data-markdown>
+## Technology
+
+### Past
+
+- Used to be a huge Rails application.
+- The whole stack went through an [evolution](http://backstage.soundcloud.com/2012/08/evolution-of-soundclouds-architecture/).
+- Deconstruction of the Death Star.
+</section>
+
+<section data-markdown>
+## Technology
+
+### Future
+
+- Smaller, independent components.
+- Internal HTTP API.
+- Multilingual
+  - Ruby
+  - JavaScript
+  - Go
+  - Java
+  - Scala
+  - Objective-C
+  - …
+</section>
+
+<section data-markdown>
+## Technology
+
+Repositories and files by language
+
+<img src="repositories.png" alt="repositories by language">
+<img src="files.png" alt="files by language">
+</section>
+
+<section data-markdown>
+## Aaaand JavaScript!
+
+The most relevant projects
+
+- **New SoundCloud** - the new frontend
+- **Widget** - embeddable player
+- **Mobile** - m.soundcloud.com
+- **Deck** - tool for content partners
+</section>
+
+<section data-markdown>
+## How do we write JavaScript?
+
+- We ❤ semicolons ;)
+- We ❤ modularization.
+- We ❤ MVC and Backbone.
+- We ❤ writing JavaScript in JavaScript syntax.
+</section>
+
+<section data-markdown>
+## Huh, no transpilers?
+
+<ul>
+	<li>Nope.
+	<li class="fragment">But:
+		<ul>
+			<li>The AMD syntax is ugly.
+			<li>→ Generate a wrapper on the server!
+		</ul>
+	</li>
+</ul>
+</section>
+
+<section data-markdown>
+## The AMD wrapper
+
+<div class="fragment">
+The ugly way
+<pre><code contenteditable>define(['foo', 'bar'], function(foo, bar) {
+
+  // stuff..
+
+  return { /* module definition */ };
+});
+</code></pre>
+</div>
+
+<div class="fragment">
+The pretty way
+
+<pre><code contenteditable class="javascript"><span style="color:red">define(function(require, exports, module) {</span>
+
+var foo = require('foo'),
+    bar = require('bar');
+
+// stuff..
+
+module.exports = /* module definition */;
+
+<span style="color:red">});</span>
+
+</code></pre>
+
+<a href="http://requirejs.org/docs/api.html#cjsmodule">CommonJS wrapper</a> is
+generated on the server
+</div>
+</section>
+
+<section data-markdown>
+## Tools
+
+- Node.js and/or Ruby + Sprockets
+- Development server (run-time rewriting)
+- Build tasks
+  - Preprocess (JS, CSS, templates)
+  - Optimize
+  - Bundle
+- JSHint with custom config
+</section>
+
+<section data-markdown>
+## Third party libraries
+
+- Backbone + Underscore
+- Handlebars
+- jQuery 1.7
+- Resig's class.js
+- SoundManager 2
+</section>
+
+<section data-markdown>
+## Our libraries
+
+- Additions to Backbone
+- Mixin
+- Singleton
+- View
+- Subview for Handlebars
+</section>
+
+<section data-markdown>
+## Views, SubViews and Singletons
+
+Template
+
+<pre><code contenteditable>&lt;button>Play!&lt;/button>
+&lt;audio>&lt;/audio>
+{{ view 'views/comments' resourceId=id }}
+</code></pre>
+
+Model and view
+
+<pre><code contenteditable>var Sound = Model.extend({
+  // model implementation
+}, {
+  hashFn: function(attributes) {
+    return attributes.id;
+  }
+});
+
+var SoundView = View.extend({
+  ModelClass: Sound,
+  template: require('sound.hbs')
+  // view implementation
+});
+</code></pre>
+</section>
+
+<section data-markdown>
+## Singleton models and collections
+
+- `new Sound({id:1}) == new Sound({id:1})`
+- If already fetched: no need to fetch!
+- Simple reference counting GC.
+- View calls `sound.hold()` and `sound.release()`
+</section>
+
+<section data-markdown>
+## Testing
+
+- Tyrtle JS testing framework
+- Nodejs and Phantomjs runners
+- Sinon.js FakeXMLHTTPRequest
+- Selenium browser automation (on the way)
+- Jenkins CI
+</section>
+
+<section data-markdown>
+## Exception tracking
+
+- **Errorception.com** (great for low traffic)
+- Problems
+  - High traffic &amp; diversity
+  - Smart grouping of exceptions
+  - Ignore by patterns
+- **Google Analytics** + custom events for statistical trends
+</section>
+
+<section data-markdown>
+## Built on this…
+</section>
+
+<section data-markdown>
+## The new <br> soundcloud.com
+
+- 516 js files
+- 42 500 lines of code
+<!--- 66 test files (8 013 loc, room to improve ;) -->
+- 186 'vendor' files (64 097 loc)
+</section>
+
+<section data-markdown>
+## The frontend
+
+- Separete, frontend-only codebase.
+- Uses the public API.
+- Created by a team of 6 JS engineers.
+- Took more than a year.
+</section>
+
+<section data-markdown>
+## Further reading
+
+- SoundCloud Backstage <br> [backstage.soundcloud.com](http://backstage.soundcloud.com)
+- SoundCloud Developers Portal <br> [developers.soundcloud.com](http://developers.soundcloud.com)
+- Building The Next SoundCloud by Nick Fisher<br>
+[backstage.soundcloud.com/2012/06/building-the-next-soundcloud](http://backstage.soundcloud.com/2012/06/building-the-next-soundcloud/)
+</section>
+
+<section data-markdown>
+### And btw,
+
+# we are hiring
+
+all kinds of engineers and more!
+
+## soundcloud.com/jobs
+</section>
+
+<section data-state="title-slide" data-markdown>
+# Thanks!
+
+Márton Salomváry <br>
+salomvary@soundcloud.com
+</section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.min.js"></script>
+
+		<script>
+
+			// Full list of configuration options available here:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: false,
+				progress: true,
+				history: true,
+        center: true,
+        rollingLinks: false,
+
+				theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+				transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+				// Optional libraries used to extend on reveal.js
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+					{ src: 'plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+					// { src: 'plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
